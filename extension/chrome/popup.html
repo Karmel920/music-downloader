@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>YT MP3 Downloader</h1>
+
+    <label for="serverUrl">Adres serwera</label>
+    <input id="serverUrl" type="text" placeholder="http://127.0.0.1:8765" />
+
+    <label for="output">Podfolder w Pobranych (opcjonalnie)</label>
+    <input id="output" type="text" placeholder="np. YouTube" />
+
+    <div class="row">
+      <div class="col">
+        <label for="format">Format</label>
+        <select id="format">
+          <option value="mp3">mp3</option>
+          <option value="m4a">m4a</option>
+          <option value="opus">opus</option>
+          <option value="flac">flac</option>
+          <option value="wav">wav</option>
+        </select>
+      </div>
+      <div class="col">
+        <label for="quality">Jakość (kbps)</label>
+        <input id="quality" type="text" placeholder="320" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="save">Zapisz</button>
+      <button id="check" class="secondary">Sprawdź serwer</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
