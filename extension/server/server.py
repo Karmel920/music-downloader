@@ -58,7 +58,7 @@ def build_ydl_opts(params: dict, job: dict, out_dir: Path) -> dict:
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    return {
+    opts: dict = {
         "format": "bestaudio/best",
         "outtmpl": outtmpl,
         "restrictfilenames": False,
@@ -79,6 +79,36 @@ def build_ydl_opts(params: dict, job: dict, out_dir: Path) -> dict:
             {"key": "FFmpegMetadata"},
         ],
     }
+
+    raw_components = params.get("remote_components")
+    if raw_components is None:
+        raw_components = "ejs:github"
+    if isinstance(raw_components, str):
+        raw_components = raw_components.split(",")
+    if raw_components:
+        components = {
+            str(c).strip()
+            for c in raw_components
+            if str(c).strip() and str(c).strip().lower() != "none"
+        }
+        if components:
+            opts["remote_components"] = components
+
+    raw_clients = params.get("player_client")
+    if raw_clients is None:
+        raw_clients = "web_embedded"
+    if isinstance(raw_clients, str):
+        raw_clients = raw_clients.split(",")
+    if raw_clients:
+        clients = [
+            str(c).strip()
+            for c in raw_clients
+            if str(c).strip() and str(c).strip().lower() != "none"
+        ]
+        if clients:
+            opts["extractor_args"] = {"youtube": {"player_client": clients}}
+
+    return opts
 
 
 def do_download(job_id: str, params: dict) -> None:

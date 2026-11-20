@@ -1,5 +1,7 @@
 {
     "output": "C:/Music",
     "format": "mp3",
-    "quality": 320
+    "quality": 320,
+    "remote_components": "ejs:github",
+    "player_client": "web_embedded"
 }
