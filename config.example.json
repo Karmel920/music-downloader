@@ -3,5 +3,7 @@
     "output": "C:/Music",
     "format": "mp3",
     "quality": 320,
-    "limit": null
+    "limit": null,
+    "remote_components": "ejs:github",
+    "player_client": "web_embedded"
 }

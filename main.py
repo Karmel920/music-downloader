@@ -38,6 +38,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("-c", "--config", default=None, help=f"Path to JSON config file. Default: {DEFAULT_CONFIG_PATH}")
     p.add_argument("-n", "--dry-run", action="store_true", help="Show what would be downloaded without saving any files.")
     p.add_argument("--verbose", action="store_true", help="Enable yt-dlp verbose output for debugging.")
+    p.add_argument("--remote-components", default=None, help="yt-dlp remote components to solve YouTube JS challenges (fixes 403 errors). E.g. 'ejs:github' (recommended) or 'ejs:npm'. Comma-separate multiple; use 'none' to disable. Default: ejs:github")
+    p.add_argument("--player-client", default=None, help="YouTube player client(s) used for extraction (fixes media 403 on some networks). Comma-separate to try in order; use 'none' for yt-dlp default. Default: web_embedded")
     p.add_argument("--check-requirements", action="store_true", help="Verify that ffmpeg and a JS runtime (deno/node) are installed, then exit.")
 
     return p.parse_args(argv)
@@ -55,7 +57,9 @@ def resolve_effective(args: argparse.Namespace, file_cfg: dict) -> dict:
         "output_dir": str(Path(pick("output", "~/music")).expanduser()),
         "format": pick("format", "mp3"),
         "quality": str(pick("quality", 320)),
-        "limit": pick("limit", None)
+        "limit": pick("limit", None),
+        "remote_components": pick("remote_components", "ejs:github"),
+        "player_client": pick("player_client", "web_embedded"),
     }
 
 
@@ -86,6 +90,30 @@ def build_ydl_opts(cfg: dict, dry_run: bool, verbose: bool) -> dict:
         ],
     }
 
+    raw_components = cfg["remote_components"]
+    if isinstance(raw_components, str):
+        raw_components = raw_components.split(",")
+    if raw_components:
+        components = {
+            str(c).strip()
+            for c in raw_components
+            if str(c).strip() and str(c).strip().lower() != "none"
+        }
+        if components:
+            opts["remote_components"] = components
+
+    raw_clients = cfg["player_client"]
+    if isinstance(raw_clients, str):
+        raw_clients = raw_clients.split(",")
+    if raw_clients:
+        clients = [
+            str(c).strip()
+            for c in raw_clients
+            if str(c).strip() and str(c).strip().lower() != "none"
+        ]
+        if clients:
+            opts["extractor_args"] = {"youtube": {"player_client": clients}}
+
     if cfg["limit"]:
         opts["playlist_items"] = f"1-{int(cfg['limit'])}"
 
@@ -111,7 +139,7 @@ def run(url: str, cfg: dict, dry_run: bool, verbose: bool) -> int:
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ret = ydl.download([url])
-            return 0 if ret else 1
+            return 0 if ret == 0 else 1
     except yt_dlp.utils.DownloadError as exc:
         print(f"yt-dlp error: {exc}", file=sys.stderr)
         return 1
